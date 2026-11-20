@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <title>RADE Operaciones</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root {
+      --primary: #0f172a;
+      --accent: #2563eb;
+      --success: #16a34a;
+      --warn: #d97706;
+      --danger: #dc2626;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 76px; }
+    .hidden { display: none !important; }
+
+    /* Login */
+    #view-login {
+      min-height: 100vh; display: flex; flex-direction: column;
+      justify-content: center; padding: 24px; background: var(--primary); color: #fff;
+    }
+    .login-box { background: #fff; color: var(--text); padding: 24px; border-radius: 16px; }
+    .login-box h1 { margin: 0 0 4px; font-size: 22px; color: var(--primary); }
+    .login-box p { margin: 0 0 20px; font-size: 14px; color: var(--muted); }
+
+    /* Header */
+    header {
+      position: sticky; top: 0; z-index: 10; background: var(--primary); color: #fff;
+      padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;
+    }
+    header h2 { margin: 0; font-size: 16px; }
+    header small { color: #94a3b8; font-size: 12px; display: block; }
+    .header-actions { display: flex; gap: 8px; }
+    .icon-btn {
+      background: rgba(255,255,255,0.12); color: #fff; border: none;
+      border-radius: 8px; padding: 6px 10px; font-size: 13px; cursor: pointer;
+    }
+
+    /* Contenedor y tarjetas */
+    main { padding: 14px; max-width: 600px; margin: 0 auto; }
+    .card {
+      background: var(--card); border-radius: 12px; padding: 16px;
+      margin-bottom: 14px; border: 1px solid var(--border);
+    }
+    .card h3 { margin: 0 0 12px; font-size: 16px; }
+
+    /* Formularios */
+    label { display: block; font-size: 13px; font-weight: 600; margin: 10px 0 4px; color: var(--muted); }
+    input, select, textarea {
+      width: 100%; padding: 11px 12px; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 15px; background: #fff; color: var(--text);
+    }
+    textarea { resize: vertical; min-height: 70px; }
+    .btn {
+      width: 100%; padding: 13px; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600; color: #fff; background: var(--accent);
+      margin-top: 14px; cursor: pointer;
+    }
+    .btn:disabled { opacity: 0.6; }
+    .btn-success { background: var(--success); }
+    .btn-warn { background: var(--warn); }
+    .btn-danger { background: var(--danger); }
+    .btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+
+    /* Asistencia */
+    .clock { font-size: 32px; font-weight: 700; text-align: center; color: var(--primary); margin: 8px 0; }
+    .status-pill {
+      display: inline-block; padding: 4px 10px; border-radius: 99px;
+      font-size: 12px; font-weight: 600; background: #e0f2fe; color: #0369a1;
+    }
+    .btn-grid { display: grid; gap: 10px; margin-top: 12px; }
+
+    /* Listas (Marcas, Seguimiento, Docs) */
+    .item-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px; margin-bottom: 10px;
+    }
+    .item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .item-title { font-weight: 700; font-size: 15px; }
+    .badge {
+      font-size: 11px; padding: 3px 8px; border-radius: 6px;
+      background: #f1f5f9; color: var(--muted); font-weight: 600; white-space: nowrap;
+    }
+    .badge-vip { background: #fef3c7; color: #b45309; }
+    .item-meta { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+    .wa-btn {
+      display: inline-block; margin-top: 10px; padding: 8px 12px; border-radius: 8px;
+      background: #25D366; color: #fff; text-decoration: none; font-size: 13px;
+      font-weight: 600; border: none; cursor: pointer;
+    }
+
+    /* Barra de navegación inferior */
+    nav.bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+      background: #fff; border-top: 1px solid var(--border);
+      display: grid; grid-template-columns: repeat(5, 1fr); z-index: 20;
+    }
+    nav.bottom-nav button {
+      background: none; border: none; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; font-size: 11px;
+      color: var(--muted); cursor: pointer; gap: 3px; padding: 4px;
+    }
+    nav.bottom-nav button span.ico { font-size: 18px; }
+    nav.bottom-nav button.active { color: var(--accent); font-weight: 700; }
+
+    /* Toast */
+    #toast {
+      position: fixed; bottom: 78px; left: 50%; transform: translateX(-50%);
+      background: var(--primary); color: #fff; padding: 10px 16px; border-radius: 8px;
+      font-size: 13px; z-index: 50; max-width: 90%; text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PANTALLA DE LOGIN -->
+  <section id="view-login">
+    <div class="login-box">
+      <h1>RADE Operaciones</h1>
+      <p>Acceso interno para asesores y personal</p>
+      <form id="form-login">
+        <label>Correo corporativo</label>
+        <input type="email" id="login-correo" required placeholder="nombre@rade.com">
+        <label>PIN (4 dígitos)</label>
+        <input type="password" id="login-pin" inputmode="numeric" maxlength="6" required placeholder="••••">
+        <button type="submit" class="btn" id="btn-login">Ingresar</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- APP PRINCIPAL -->
+  <div id="app-shell" class="hidden">
+    <header>
+      <div>
+        <h2 id="header-title">Asistencia</h2>
+        <small id="header-user"></small>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" onclick="cargarDatosIniciales(true)">↻ Sync</button>
+        <button class="icon-btn" onclick="cerrarSesion()">Salir</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- 1. ASISTENCIA -->
+      <section id="tab-asistencia" class="tab-view">
+        <div class="card" style="text-align:center;">
+          <div class="clock" id="reloj-vivo">--:--:--</div>
+          <div>Último registro hoy: <span class="status-pill" id="asist-ultimo">Sin registros</span></div>
+          <label style="text-align:left; margin-top:16px;">Nota / Incidencia (opcional o si checas en campo)</label>
+          <input type="text" id="asist-nota" placeholder="Ej. Inicio jornada en Plaza X">
+          <div class="btn-grid" id="asist-botones"></div>
+        </div>
+      </section>
+
+      <!-- 2. VISITAS -->
+      <section id="tab-visitas" class="tab-view hidden">
+        <div class="card">
+          <h3>Registrar Visita (Check-in GPS)</h3>
+          <form id="form-visita">
+            <label>Plaza / Inmueble</label>
+            <select id="vis-plaza" required></select>
+
+            <label>Local</label>
+            <select id="vis-local" required></select>
+
+            <label>Tipo de Visita</label>
+            <select id="vis-tipo" required>
+              <option value="Recorrido con marca">Recorrido con marca</option>
+              <option value="Inspección">Inspección</option>
+              <option value="Levantamiento">Levantamiento</option>
+              <option value="Entrega">Entrega</option>
+              <option value="Otro">Otro</option>
+            </select>
+
+            <label>Marca / Cliente (opcional)</label>
+            <select id="vis-marca"></select>
+
+            <label>Comentarios</label>
+            <textarea id="vis-comentarios" placeholder="Observaciones o acuerdos de la visita..."></textarea>
+
+            <button type="submit" class="btn" id="btn-guardar-visita">📍 Guardar Visita con GPS</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- 3. SEGUIMIENTO -->
+      <section id="tab-seguimiento" class="tab-view hidden">
+        <div class="card">
+          <h3>Registrar Gestión de Marca</h3>
+          <form id="form-seguimiento">
+            <label>Local / Plaza</label>
+            <select id="seg-local" required></select>
+
+            <label>Marca</label>
+            <select id="seg-marca" required></select>
+
+            <label>Canal</label>
+            <select id="seg-canal" required>
+              <option value="WhatsApp">WhatsApp</option>
+              <option value="Llamada">Llamada</option>
+              <option value="Correo">Correo</option>
+              <option value="Presencial">Presencial</option>
+            </select>
+
+            <label>Estatus</label>
+            <select id="seg-estatus" required>
+              <option value="Contactado">Contactado</option>
+              <option value="Ficha enviada">Ficha enviada</option>
+              <option value="Interesado">Interesado</option>
+              <option value="En negociación">En negociación</option>
+              <option value="Descartado">Descartado</option>
+            </select>
+
+            <label>Próximo Seguimiento (opcional)</label>
+            <input type="date" id="seg-proximo">
+
+            <label>Notas / Motivo</label>
+            <textarea id="seg-notas" placeholder="Ej. Pide m² adicionales, no entra por giro..."></textarea>
+
+            <button type="submit" class="btn" id="btn-guardar-seg">Guardar Seguimiento</button>
+          </form>
+        </div>
+
+        <h3 style="font-size:15px; margin:16px 0 8px;">Historial Reciente</h3>
+        <div id="lista-seguimiento"></div>
+      </section>
+
+      <!-- 4. DIRECTORIO DE MARCAS -->
+      <section id="tab-marcas" class="tab-view hidden">
+        <button class="btn btn-outline" style="margin-top:0; margin-bottom:12px;" onclick="toggleFormMarca()">+ Agregar Nueva Marca</button>
+
+        <div class="card hidden" id="box-nueva-marca">
+          <h3>Alta en Directorio</h3>
+          <form id="form-marca">
+            <label>Nombre Comercial</label>
+            <input type="text" id="mrc-nombre" required>
+
+            <label>Giro</label>
+            <select id="mrc-giro" required>
+              <option value="Alimentos y Bebidas">Alimentos y Bebidas</option>
+              <option value="Retail">Retail</option>
+              <option value="Servicios">Servicios</option>
+              <option value="Salud">Salud</option>
+              <option value="Entretenimiento">Entretenimiento</option>
+              <option value="Otro">Otro</option>
+            </select>
+
+            <label>Director de Expansión</label>
+            <input type="text" id="mrc-director" required>
+
+            <label>WhatsApp (10 dígitos)</label>
+            <input type="tel" id="mrc-whatsapp" required placeholder="8112345678">
+
+            <label>Correo (opcional)</label>
+            <input type="email" id="mrc-correo">
+
+            <label>Requerimiento de Espacio</label>
+            <input type="text" id="mrc-req" placeholder="Ej. 80 a 120 m²">
+
+            <button type="submit" class="btn" id="btn-guardar-marca">Guardar Marca</button>
+          </form>
+        </div>
+
+        <input type="search" id="buscar-marca" placeholder="Buscar marca, giro o director..." style="margin-bottom:12px;">
+        <div id="lista-marcas"></div>
+      </section>
+
+      <!-- 5. DOCUMENTOS -->
+      <section id="tab-docs" class="tab-view hidden">
+        <select id="filtro-docs" style="margin-bottom:12px;">
+          <option value="">Todas las categorías</option>
+          <option value="Contrato">Contratos</option>
+          <option value="Formato">Formatos</option>
+          <option value="Ficha Técnica">Fichas Técnicas</option>
+          <option value="Reglamento">Reglamentos</option>
+        </select>
+        <div id="lista-docs"></div>
+      </section>
+    </main>
+
+    <!-- NAVEGACIÓN INFERIOR -->
+    <nav class="bottom-nav">
+      <button class="active" data-tab="asistencia" onclick="cambiarTab('asistencia', 'Asistencia')">
+        <span class="ico">⏱️</span>Asistencia
+      </button>
+      <button data-tab="visitas" onclick="cambiarTab('visitas', 'Visitas')">
+        <span class="ico">📍</span>Visitas
+      </button>
+      <button data-tab="seguimiento" onclick="cambiarTab('seguimiento', 'Seguimiento')">
+        <span class="ico">📋</span>Gestión
+      </button>
+      <button data-tab="marcas" onclick="cambiarTab('marcas', 'Directorio de Marcas')">
+        <span class="ico">🏢</span>Marcas
+      </button>
+      <button data-tab="docs" onclick="cambiarTab('docs', 'Documentos')">
+        <span class="ico">📄</span>Docs
+      </button>
+    </nav>
+  </div>
+
+  <div id="toast" class="hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>

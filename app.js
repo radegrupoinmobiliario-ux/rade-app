@@ -19,10 +19,21 @@ if ("serviceWorker" in navigator) {
 
 window.addEventListener("DOMContentLoaded", () => {
   iniciarReloj();
+  // Mostrar botón de huella/patrón si ya fue activado antes en este teléfono
+  if (localStorage.getItem("rade_bio_id") && localStorage.getItem("rade_bio_user")) {
+    document.getElementById("btn-bio-login")?.classList.remove("hidden");
+  }
+
   const sesion = localStorage.getItem("rade_user");
   if (sesion) {
     state.usuario = JSON.parse(sesion);
+    const ultima = Number(localStorage.getItem("rade_ultima_actividad") || 0);
+    if (ultima && (Date.now() - ultima) >= MINUTOS_INACTIVIDAD * 60 * 1000) {
+      cerrarSesion(true);
+      return;
+    }
     state.ultimoEventoHoy = localStorage.getItem("rade_ultimo_evento") || null;
+    registrarActividad();
     mostrarApp();
     cargarDatosIniciales();
   }
@@ -131,11 +142,16 @@ function mostrarApp() {
   renderAsistencia();
 }
 
-function cerrarSesion() {
+function cerrarSesion(porInactividad = false) {
   localStorage.removeItem("rade_user");
   localStorage.removeItem("rade_ultimo_evento");
+  localStorage.removeItem("rade_ultima_actividad");
+  // Nota: NO borramos rade_bio_id para que pueda volver a entrar con huella/patrón
+  if (porInactividad) {
+    alert("Tu sesión se cerró automáticamente por inactividad.");
+  }
   location.reload();
-}
+}}
 
 function cambiarTab(tabId, titulo) {
   document.querySelectorAll(".tab-view").forEach(v => v.classList.add("hidden"));
@@ -476,4 +492,104 @@ function renderDocumentos() {
       </div>
     `;
   }).join("") || `<p style="color:var(--muted); font-size:13px;">No hay documentos en esta categoría.</p>`;
+}
+// ==========================================
+// CIERRE DE SESIÓN POR INACTIVIDAD
+// ==========================================
+const MINUTOS_INACTIVIDAD = 15; // Cambia este número a los minutos que necesites
+let timerInactividad = null;
+
+function registrarActividad() {
+  if (!state.usuario) return;
+  localStorage.setItem("rade_ultima_actividad", Date.now().toString());
+  clearTimeout(timerInactividad);
+  timerInactividad = setTimeout(verificarInactividad, MINUTOS_INACTIVIDAD * 60 * 1000);
+}
+
+function verificarInactividad() {
+  if (!state.usuario) return;
+  const ultima = Number(localStorage.getItem("rade_ultima_actividad") || 0);
+  const transcurrido = Date.now() - ultima;
+  if (ultima && transcurrido >= MINUTOS_INACTIVIDAD * 60 * 1000) {
+    cerrarSesion(true);
+  }
+}
+
+// Detecta toques, clics, teclado y cuando el usuario vuelve a abrir la app
+["click", "touchstart", "keydown", "scroll"].forEach(evt =>
+  window.addEventListener(evt, registrarActividad, { passive: true })
+);
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") verificarInactividad();
+});
+
+// ==========================================
+// VALIDACIÓN BIOMÉTRICA / PATRÓN (WebAuthn)
+// ==========================================
+function bufToBase64(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+function base64ToBuf(str) {
+  return Uint8Array.from(atob(str), c => c.charCodeAt(0));
+}
+
+async function registrarBiometria() {
+  if (!window.PublicKeyCredential) {
+    return toast("Este dispositivo no soporta validación biométrica en web.");
+  }
+  try {
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const cred = await navigator.credentials.create({
+      publicKey: {
+        challenge,
+        rp: { name: "RADE Operaciones" },
+        user: {
+          id: new TextEncoder().encode(state.usuario.correo),
+          name: state.usuario.correo,
+          displayName: state.usuario.nombre
+        },
+        pubKeyCredParams: [{ type: "public-key", alg: -7 }, { type: "public-key", alg: -257 }],
+        authenticatorSelection: {
+          authenticatorAttachment: "platform", // Fuerza huella/rostro/patrón del celular
+          userVerification: "required"
+        },
+        timeout: 60000
+      }
+    });
+
+    localStorage.setItem("rade_bio_id", bufToBase64(cred.rawId));
+    localStorage.setItem("rade_bio_user", JSON.stringify(state.usuario));
+    toast("✅ Huella / Patrón activado en este dispositivo");
+  } catch (err) {
+    toast("No se pudo activar la biometría o fue cancelada.");
+  }
+}
+
+async function iniciarConBiometria() {
+  const bioId = localStorage.getItem("rade_bio_id");
+  const bioUser = localStorage.getItem("rade_bio_user");
+  if (!bioId || !bioUser) return;
+
+  try {
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    await navigator.credentials.get({
+      publicKey: {
+        challenge,
+        allowCredentials: [{ id: base64ToBuf(bioId), type: "public-key" }],
+        userVerification: "required",
+        timeout: 60000
+      }
+    });
+
+    // Validación exitosa en el dispositivo
+    state.usuario = JSON.parse(bioUser);
+    localStorage.setItem("rade_user", bioUser);
+    registrarActividad();
+    mostrarApp();
+    cargarDatosIniciales();
+    toast(`Bienvenido, ${state.usuario.nombre}`);
+  } catch (err) {
+    toast("Validación cancelada. Ingresa con correo y PIN.");
+  }
 }

@@ -35,6 +35,7 @@ window.addEventListener("DOMContentLoaded", () => {
     state.ultimoEventoHoy = localStorage.getItem("rade_ultimo_evento") || null;
     registrarActividad();
     mostrarApp();
+    registrarActividad();
     cargarDatosIniciales();
   }
 });

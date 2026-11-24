@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#0f172a">
   <title>RADE Operaciones</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="./logoinstagram.png">
+  <link rel="apple-touch-icon" href="./logoinstagram.png">
   <style>
     :root {
       --primary: #0f172a;
@@ -124,10 +126,11 @@
 <body>
 
   <!-- PANTALLA DE LOGIN -->
-  <section id="view-login">
+<section id="view-login">
     <div class="login-box">
-      <h1>RADE Operaciones</h1>
-      <p>Acceso interno para asesores y personal</p>
+      <img src="./logo.png" alt="RADE" style="width:76px; height:76px; object-fit:contain; display:block; margin:0 auto 12px;">
+      <h1 style="text-align:center;">RADE Operaciones</h1>
+      <p style="text-align:center;">Acceso interno para asesores y personal</p>
       <form id="form-login">
         <label>Correo corporativo</label>
         <input type="email" id="login-correo" required placeholder="nombre@rade.com">
@@ -135,18 +138,25 @@
         <input type="password" id="login-pin" inputmode="numeric" maxlength="6" required placeholder="••••">
         <button type="submit" class="btn" id="btn-login">Ingresar</button>
       </form>
+      <button type="button" class="btn btn-outline hidden" id="btn-bio-login" onclick="iniciarConBiometria()">
+        🔓 Entrar con Huella / Patrón
+      </button>
     </div>
   </section>
 
   <!-- APP PRINCIPAL -->
   <div id="app-shell" class="hidden">
-    <header>
-      <div>
-        <h2 id="header-title">Asistencia</h2>
-        <small id="header-user"></small>
+<header>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img src="./logo.png" alt="RADE" style="width:34px; height:34px; border-radius:6px; object-fit:contain; background:#fff; padding:2px;">
+        <div>
+          <h2 id="header-title">Asistencia</h2>
+          <small id="header-user"></small>
+        </div>
       </div>
       <div class="header-actions">
-        <button class="icon-btn" onclick="cargarDatosIniciales(true)">↻ Sync</button>
+        <button class="icon-btn" id="btn-activar-bio" onclick="registrarBiometria()" title="Activar huella o patrón">🔒</button>
+        <button class="icon-btn" onclick="cargarDatosIniciales(true)">↻</button>
         <button class="icon-btn" onclick="cerrarSesion()">Salir</button>
       </div>
     </header>

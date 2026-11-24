@@ -33,7 +33,6 @@ window.addEventListener("DOMContentLoaded", () => {
       return;
     }
     state.ultimoEventoHoy = localStorage.getItem("rade_ultimo_evento") || null;
-    registrarActividad();
     mostrarApp();
     registrarActividad();
     cargarDatosIniciales();
@@ -126,6 +125,7 @@ document.getElementById("form-login").addEventListener("submit", async (e) => {
       localStorage.setItem("rade_user", JSON.stringify(res.usuario));
       if (state.ultimoEventoHoy) localStorage.setItem("rade_ultimo_evento", state.ultimoEventoHoy);
       mostrarApp();
+      registrarActividad();
       cargarDatosIniciales();
     }
   } catch (err) {
@@ -152,7 +152,7 @@ function cerrarSesion(porInactividad = false) {
     alert("Tu sesión se cerró automáticamente por inactividad.");
   }
   location.reload();
-}}
+}
 
 function cambiarTab(tabId, titulo) {
   document.querySelectorAll(".tab-view").forEach(v => v.classList.add("hidden"));
